@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import DataTable from 'react-data-table-component';
+import { PDFExport } from "@progress/kendo-react-pdf";
 var axios = require('axios');
 
 export default function Medicion() {
@@ -25,10 +26,10 @@ export default function Medicion() {
     }, []);
 
     const columnas = useMemo(() => [
-        { name:'ID', selector:'medicionId', sortable:true },
-        { name:'Fecha', selector:'fecha', sortable:true },
-        { name:'Temperatura', selector:'temperatura', sortable:true },
-        { name:'Sensor', selector:'sensor.nombre', sortable:true },
+        { id:"medicionId", name:'ID', selector:'medicionId', sortable:true },
+        { id:"fecha", name:'Fecha', selector:'fecha', sortable:true },
+        { id:"temperatura", name:'Temperatura', selector:'temperatura', sortable:true },
+        { id:"sensor", name:'Sensor', selector:'sensor.nombre', sortable:true },
     ]);
 
     const paginacionOpciones = {
@@ -37,8 +38,52 @@ export default function Medicion() {
         selectAllRowsItems: true,
         selectAllRowsItemText: 'Todos'
     }
+
+    const conditionalRowStyles = [
+      {
+        when: row => row.temperatura < 30,
+        style: {
+          backgroundColor: ' #4fa3df ',
+          color: 'white',
+          '&:hover': {
+            cursor: 'pointer',
+          },
+        },
+      },
+      {
+        when: row => row.temperatura > 70,
+        style: {
+          backgroundColor: ' #f74c41 ',
+          color: 'white',
+          '&:hover': {
+            cursor: 'pointer',
+          },
+        },
+      },      
+    ];
+
+    const pdfExportComponent = React.useRef(null);
+
+    const exportPDFWithComponent = () => {
+      if (pdfExportComponent.current) {
+        pdfExportComponent.current.save();
+      }
+    };
+
     return (
         <div>
+          <div className="example-config">
+            <button className="k-button" onClick={exportPDFWithComponent}>
+              Export Mediciones
+            </button>
+          </div>
+          <PDFExport
+            ref={pdfExportComponent}
+            paperSize="auto"
+            margin={40}
+            fileName={`Report for ${new Date().getFullYear()}`}
+            author="KendoReact Team"
+          >
             <div>
               <DataTable className="table-responsive"
                   title="MEDICIONES" 
@@ -48,8 +93,10 @@ export default function Medicion() {
                   paginationComponentOptions={paginacionOpciones}
                   fixedHeader
                   fixedHeaderScrollHeight="600px"
+                  conditionalRowStyles={conditionalRowStyles}
                   />
             </div>
+          </PDFExport>
         </div>
     )
 }

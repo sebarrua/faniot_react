@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import DataTable from 'react-data-table-component';
+import { PDFExport } from "@progress/kendo-react-pdf";
 var axios = require('axios');
 
 export default function Sensor() {
@@ -24,25 +25,6 @@ export default function Sensor() {
       }
     }, []);
 
-    function dataFromaAPISensor() {
-        var config = {
-          method: 'GET',
-          url: 'http://localhost:8080/sensor',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'            
-          },
-        };
-        axios(config)
-          .then(function (response) {
-            setData(response.data);
-          })
-          .catch(function (error) {
-            console.log("error");
-            console.log(error);
-            console.log("error");
-          });
-      }
-
     const columnas = useMemo(() => [
         { name:'ID', selector:'sensorId', sortable:true },
         { name:'Nombre', selector:'nombre', sortable:true },
@@ -55,19 +37,41 @@ export default function Sensor() {
         selectAllRowsItems: true,
         selectAllRowsItemText: 'Todos'
     }
+
+    const pdfExportComponent = React.useRef(null);
+
+    const exportPDFWithComponent = () => {
+      if (pdfExportComponent.current) {
+        pdfExportComponent.current.save();
+      }
+    };
+
     return (
         <div>
-            <div>              
-              <DataTable className="table-responsive"
-                  title="SENSORES" 
-                  columns={columnas}
-                  data={data}
-                  pagination
-                  paginationComponentOptions={paginacionOpciones}
-                  fixedHeader
-                  fixedHeaderScrollHeight="600px"
-                  />
-            </div>
+          <div className="example-config">
+            <button className="k-button" onClick={exportPDFWithComponent}>
+              Export Sensores
+            </button>
+          </div>
+          <PDFExport
+            ref={pdfExportComponent}
+            paperSize="auto"
+            margin={40}
+            fileName={`Report for ${new Date().getFullYear()}`}
+            author="KendoReact Team"
+          >
+          <div>              
+            <DataTable className="table-responsive"
+              title="SENSORES" 
+              columns={columnas}
+              data={data}
+              pagination
+              paginationComponentOptions={paginacionOpciones}
+              fixedHeader
+              fixedHeaderScrollHeight="600px"
+              />
+          </div>
+          </PDFExport>
         </div>
     )
 }
